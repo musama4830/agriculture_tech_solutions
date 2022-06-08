@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 import './colors.dart' as color;
@@ -9,6 +13,29 @@ class SoilMoisture extends StatefulWidget {
 }
 
 class _SoilMoistureState extends State<SoilMoisture> {
+  final url =
+      'https://agriculture-tech-solutions-default-rtdb.firebaseio.com/.json';
+  var soilMoisture = 'Loading...';
+
+  void getSoilMoistureData() {
+    try {
+      http.get(Uri.parse(url)).then((response) {
+        soilMoisture = json.decode(response.body)['soilMoisture'].toString();
+        setState(() {
+          soilMoisture;
+        });
+      });
+    } catch (error) {
+      throw (error);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getSoilMoistureData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,7 +86,7 @@ class _SoilMoistureState extends State<SoilMoisture> {
                   ),
                   const SizedBox(height: 25),
                   Text(
-                    "Loading...",
+                    soilMoisture,
                     style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.w600,
@@ -104,7 +131,7 @@ class _SoilMoistureState extends State<SoilMoisture> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.refresh),
         backgroundColor: color.AppColor.gradientFirst.withOpacity(0.7),
-        onPressed: () {},
+        onPressed: getSoilMoistureData,
       ),
     );
   }

@@ -1,6 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:tflite/tflite.dart';
 
 import './colors.dart' as color;
 
@@ -11,7 +13,43 @@ class LiveMonitoring extends StatefulWidget {
 
 class _LiveMonitoringState extends State<LiveMonitoring> {
   File imageFile;
-  var imageDetails = 'Image description...';
+  String imageDetails = 'Image description...';
+  List _result;
+  String _confidence = "";
+  String _name = "";
+  String _numbers = "";
+
+  _loadMyModel() async {
+    var resultant = await Tflite.loadModel(
+        labels: "assets/labels.txt", model: "assets/saved_model.tflite");
+  }
+
+  applyModelOnImage(File file) async {
+    var res = await Tflite.runModelOnImage(
+      path: file.path,
+      numResults: 4,
+      threshold: 0.5,
+      imageMean: 127.5,
+      imageStd: 127.5,
+    );
+
+    setState(() {
+      _result = res;
+
+      String str = _result[0]["label"];
+      _name = str.substring(4);
+      _confidence = _result != null
+          ? (_result[0]['confidence'] * 100.0).toString().substring(0, 4) + "%"
+          : "";
+      imageDetails = _name;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMyModel();
+  }
 
   _getFromGallery() async {
     PickedFile pickedFile = await ImagePicker().getImage(
@@ -19,9 +57,10 @@ class _LiveMonitoringState extends State<LiveMonitoring> {
     );
     if (pickedFile != null) {
       setState(() {
-        imageFile = File(pickedFile.path);
+        imageFile = pickedFile as File;
       });
       Navigator.of(context).pop();
+      applyModelOnImage(imageFile);
     }
   }
 
@@ -31,9 +70,10 @@ class _LiveMonitoringState extends State<LiveMonitoring> {
     );
     if (pickedFile != null) {
       setState(() {
-        imageFile = File(pickedFile.path);
+        imageFile = pickedFile as File;
       });
       Navigator.of(context).pop();
+      applyModelOnImage(imageFile);
     }
   }
 
@@ -100,7 +140,10 @@ class _LiveMonitoringState extends State<LiveMonitoring> {
                   ? const Center(
                       child: Text('Live Monitoring...'),
                     )
-                  : Image.file(imageFile),
+                  : Image.file(
+                      File(imageFile.path),
+                      fit: BoxFit.contain,
+                    ),
             ),
             const SizedBox(height: 30),
             Container(

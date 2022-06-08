@@ -1,25 +1,42 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 import './home_page.dart';
+import '../providers/data_provider.dart';
 
 void main() {
-  runApp(myApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  runApp(const MyApp());
 }
 
-class myApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
+  const MyApp({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-        title: ('Sample App'),
-        theme: ThemeData(
-          primarySwatch: Colors.blueGrey,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(
+          value: DataProvider(),
         ),
-        home: HomePage(),
+      ],
+      child: Consumer<DataProvider>(
+        builder: (ctx, dataProvider, _) => GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: ('Sample App'),
+          theme: ThemeData(
+            primarySwatch: Colors.blueGrey,
+          ),
+          home: HomePage(),
+        ),
+      ),
     );
   }
 }
