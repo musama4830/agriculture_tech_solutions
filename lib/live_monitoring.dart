@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 import 'package:tflite/tflite.dart';
 
 import './colors.dart' as color;
@@ -13,35 +14,48 @@ class LiveMonitoring extends StatefulWidget {
 
 class _LiveMonitoringState extends State<LiveMonitoring> {
   File imageFile;
-  String imageDetails = 'Image description...';
+  String imageDetails = 'Loading...';
   List _result;
-  String _confidence = "";
+  String _confidence = "0.00%";
   String _name = "";
   String _numbers = "";
 
   _loadMyModel() async {
     var resultant = await Tflite.loadModel(
-        labels: "assets/labels.txt", model: "assets/saved_model.tflite");
+        labels: "assets/labels.txt",
+        model: "assets/saved_model.tflite",
+        numThreads: 1);
+
+    print(resultant);
+  }
+
+  @override
+  void dispose() {
+    Tflite.close();
+    super.dispose();
   }
 
   applyModelOnImage(File file) async {
     var res = await Tflite.runModelOnImage(
       path: file.path,
-      numResults: 4,
-      threshold: 0.5,
-      imageMean: 127.5,
-      imageStd: 127.5,
+      numResults: 1,
+      threshold: 0.2,
+      imageMean: 0.0,
+      imageStd: 255.0,
+      asynch: true,
     );
 
     setState(() {
       _result = res;
 
-      String str = _result[0]["label"];
-      _name = str.substring(4);
+      _name = _result[0]["label"];
       _confidence = _result != null
           ? (_result[0]['confidence'] * 100.0).toString().substring(0, 4) + "%"
           : "";
       imageDetails = _name;
+      print(_result);
+      print(_name);
+      print(_confidence);
     });
   }
 
@@ -57,7 +71,7 @@ class _LiveMonitoringState extends State<LiveMonitoring> {
     );
     if (pickedFile != null) {
       setState(() {
-        imageFile = pickedFile as File;
+        imageFile = File(pickedFile.path);
       });
       Navigator.of(context).pop();
       applyModelOnImage(imageFile);
@@ -70,7 +84,7 @@ class _LiveMonitoringState extends State<LiveMonitoring> {
     );
     if (pickedFile != null) {
       setState(() {
-        imageFile = pickedFile as File;
+        imageFile = File(pickedFile.path);
       });
       Navigator.of(context).pop();
       applyModelOnImage(imageFile);
@@ -141,19 +155,20 @@ class _LiveMonitoringState extends State<LiveMonitoring> {
                       child: Text('Live Monitoring...'),
                     )
                   : Image.file(
-                      File(imageFile.path),
-                      fit: BoxFit.contain,
+                      imageFile,
+                      fit: BoxFit.cover,
                     ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 15),
             Container(
               width: MediaQuery.of(context).size.width,
-              height: 60,
+              height: 80,
               padding: const EdgeInsets.all(5),
               margin: const EdgeInsets.all(10),
               color: color.AppColor.gradientFirst.withOpacity(0.7),
               child: Center(
-                child: Text(imageDetails,
+                child: Text(
+                    "Result: ${imageDetails}" + "\nConfidence: ${_confidence}",
                     style: TextStyle(
                         color: color.AppColor.homePageBackground,
                         fontWeight: FontWeight.bold,
