@@ -14,7 +14,7 @@ class SoilMoisture extends StatefulWidget {
 
 class _SoilMoistureState extends State<SoilMoisture> {
   final url =
-      'https://agriculture-tech-solutions-default-rtdb.firebaseio.com/.json';
+      'https://agriculture-tech-solutio-c5d30-default-rtdb.firebaseio.com/.json';
   var soilMoisture = 'Loading...';
 
   void getSoilMoistureData() {

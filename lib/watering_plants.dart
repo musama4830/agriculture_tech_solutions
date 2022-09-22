@@ -12,7 +12,7 @@ class WateringPlants extends StatefulWidget {
 
 class _WateringPlantsState extends State<WateringPlants> {
   final url =
-      'https://agriculture-tech-solutions-default-rtdb.firebaseio.com/.json';
+      'https://agriculture-tech-solutio-c5d30-default-rtdb.firebaseio.com/.json';
   var imageFile = 'assets/plants.png';
   var details = 'ON Watering System';
   bool _isWatering;
